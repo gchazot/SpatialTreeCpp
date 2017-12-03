@@ -16,9 +16,14 @@ enum class DimensionType : Coordinates::size_type {};
 
 class Point {
 public:
-	Point(size_t id, Coordinates & location):
+	Point(size_t id, const Coordinates & location):
 		_id(id),
 		_location(location) {
+	}
+
+	Point(size_t id, Coordinates && location) :
+		_id(id),
+		_location(move(location)) {
 	}
 
 	CoordinateType component(DimensionType dimension) const {
@@ -62,7 +67,7 @@ public:
 	Bounds(const Bounds & bounds) = default;
 	Bounds(Bounds && bounds) = default;
 
-	Bounds split(DimensionType dimension);
+	Bounds split(DimensionType dimension, CoordinateType splitValue);
 
 private:
 	Coordinates _mins;
@@ -91,13 +96,9 @@ private:
 	list<Point> _points;
 };
 
-class SpatialTree : public SpatialBranch
-{
+class SpatialTree : public SpatialBranch {
 public:
-	SpatialTree(DimensionType splitDimension, CoordinateType splitValue):
-		_splitDimension(splitDimension),
-		_splitValue(splitValue) {
-	}
+	SpatialTree(DimensionType splitDimension, CoordinateType splitValue);
 
 	virtual void Add(Point && point) override;
 private:

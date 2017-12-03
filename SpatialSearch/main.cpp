@@ -47,6 +47,15 @@ struct Flight {
 		v = sin((lon2r - lon1r) / 2);
 		return 2.0 * earthRadiusKm * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
 	}
+
+	Point toPoint() const {
+		Coordinates coords = {
+			cos(latitude) * sin(longitude),
+			cos(latitude) * cos(longitude),
+			sin(latitude)
+		};
+		return Point(index, move(coords));
+	}
 };
 
 Flight parse_line(const string line) {
@@ -129,6 +138,14 @@ void SolveWithForForLoop(vector<Flight> flights) {
 	}
 }
 
+void SolveWithSpatialIndex(vector<Flight> flights) {
+	SpatialTree index(DimensionType(0), CoordinateType(0.0));
+
+	for (const auto & flight : flights) {
+		index.Add(move(flight.toPoint()));
+	}
+}
+
 int main()
 {
 	vector< Flight > flights = parseFile("data/20170901_080005.csv");
@@ -138,7 +155,8 @@ int main()
 		return 0;
 	}
 
-	SolveWithForForLoop(move(flights));
+	//SolveWithForForLoop(move(flights));
+	SolveWithSpatialIndex(move(flights));
 
     return 0;
 }

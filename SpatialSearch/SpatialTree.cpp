@@ -2,7 +2,19 @@
 
 #include <algorithm>
 
-inline void SpatialLeaf::Add(Point && point) {
+Bounds Bounds::split(DimensionType dimension, CoordinateType splitValue)
+{
+	const auto dimIndex = static_cast<underlying_type<DimensionType>::type>(dimension);
+
+	_mins[dimIndex] = splitValue;
+
+	Bounds newBounds(*this);
+	newBounds._maxs[dimIndex] = splitValue;
+
+	return newBounds;
+}
+
+void SpatialLeaf::Add(Point && point) {
 	_points.push_back(point);
 }
 
@@ -15,11 +27,20 @@ SpatialLeaf SpatialLeaf::split(DimensionType dimension)
 		++middle;
 	}
 
-	Bounds newBounds(_bounds.split(dimension));
+	Bounds newBounds(_bounds.split(dimension, middle->component(dimension)));
 	
 	SpatialLeaf newLeaf(move(newBounds), _maxItems);
 	newLeaf._points.splice(newLeaf._points.end(), _points, middle, _points.end());
 	return newLeaf;
+}
+
+SpatialTree::SpatialTree(DimensionType splitDimension, CoordinateType splitValue) :
+	_splitDimension(splitDimension),
+	_splitValue(splitValue) {
+	Bounds highBounds({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
+	Bounds lowBounds(move(highBounds.split(_splitDimension, _splitValue)));
+	_lb.reset(new SpatialLeaf(move(lowBounds), 10));
+	_ub.reset(new SpatialLeaf(move(highBounds), 10));
 }
 
 void SpatialTree::Add(Point && point)
@@ -29,17 +50,4 @@ void SpatialTree::Add(Point && point)
 	} else {
 		_ub->Add(move(point));
 	}
-}
-
-Bounds Bounds::split(DimensionType dimension)
-{
-	const auto dimIndex = static_cast<underlying_type<DimensionType>::type>(dimension);
-	const CoordinateType splitValue = (_mins[dimIndex] + _maxs[dimIndex]) / 2;
-
-	_mins[dimIndex] = splitValue;
-
-	Bounds newBounds(*this);
-	newBounds._maxs[dimIndex] = splitValue;
-
-	return newBounds;
 }
