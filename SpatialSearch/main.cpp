@@ -144,6 +144,11 @@ void SolveWithSpatialIndex(vector<Flight> flights) {
 	for (const auto & flight : flights) {
 		index.Add(move(flight.toPoint()));
 	}
+
+	debug("Size             " << index.Size());
+	debug("NumLeaves        " << index.NumLeaves());
+	debug("Depth            " << index.Depth());
+	debug("MaxItemsPerLeaf  " << index.MaxItemsPerLeaf());
 }
 
 int main()

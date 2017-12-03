@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <limits>
 #include <list>
 #include <memory>
@@ -84,6 +85,11 @@ class SpatialBranch {
 public:
 	virtual void Add(Point && point) = 0;
 	virtual bool MustSplit() const = 0;
+
+	virtual size_t Size() const = 0;
+	virtual size_t NumLeaves() const = 0;
+	virtual size_t Depth() const = 0;
+	virtual size_t MaxItemsPerLeaf() const = 0;
 };
 
 class SpatialLeaf: public SpatialBranch {
@@ -96,6 +102,19 @@ public:
 	virtual void Add(Point && point) override;
 	virtual bool MustSplit() const override {
 		return _points.size() > _maxItems;
+	}
+
+	virtual size_t Size() const {
+		return _points.size();
+	}
+	virtual size_t NumLeaves() const override {
+		return 1;
+	}
+	virtual size_t Depth() const override {
+		return 1;
+	}
+	virtual size_t MaxItemsPerLeaf() const override {
+		return Size();
 	}
 
 	SpatialLeaf split(DimensionType dimension, CoordinateType & splitValue);
@@ -114,6 +133,20 @@ public:
 	virtual bool MustSplit() const override {
 		return false;
 	}
+
+	virtual size_t Size() const {
+		return _lb->Size() + _ub->Size();
+	}
+	virtual size_t NumLeaves() const override {
+		return _lb->NumLeaves() + _ub->NumLeaves();
+	}
+	virtual size_t Depth() const override {
+		return max(_lb->Depth(), _ub->Depth()) + 1;
+	}
+	virtual size_t MaxItemsPerLeaf() const override {
+		return max(_lb->MaxItemsPerLeaf(), _ub->MaxItemsPerLeaf());
+	}
+
 private:
 	DimensionType _splitDimension;
 	CoordinateType _splitValue;
