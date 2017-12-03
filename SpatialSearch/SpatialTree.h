@@ -29,11 +29,11 @@ public:
 		_location(move(location)) {
 	}
 
-	CoordinateType component(DimensionType dimension) const {
+	CoordinateType Component(DimensionType dimension) const {
 		return _location[static_cast<Coordinates::size_type>(dimension)];
 	}
 
-	DimensionType dimension() const {
+	DimensionType Dimension() const {
 		return DimensionType(_location.size());
 	}
 
@@ -53,7 +53,7 @@ public:
 
 
 	bool operator()(const Point & p1, const Point & p2) const {
-		return p1.component(_dim) < p2.component(_dim);
+		return p1.Component(_dim) < p2.Component(_dim);
 	}
 private:
 	const DimensionType _dim;
@@ -74,7 +74,7 @@ public:
 	Bounds(const Bounds & bounds) = default;
 	Bounds(Bounds && bounds) = default;
 
-	Bounds split(DimensionType dimension, CoordinateType splitValue);
+	Bounds Split(DimensionType dimension, CoordinateType splitValue);
 
 private:
 	Coordinates _mins;
@@ -117,7 +117,7 @@ public:
 		return Size();
 	}
 
-	SpatialLeaf split(DimensionType dimension, CoordinateType & splitValue);
+	SpatialLeaf Split(DimensionType dimension, CoordinateType & splitValue);
 
 private:
 	Bounds _bounds;
