@@ -14,6 +14,8 @@ typedef vector<CoordinateType> Coordinates;
 
 enum class DimensionType : Coordinates::size_type {};
 
+DimensionType next(DimensionType dimension, DimensionType maxDimension);
+
 class Point {
 public:
 	Point(size_t id, const Coordinates & location):
@@ -28,6 +30,10 @@ public:
 
 	CoordinateType component(DimensionType dimension) const {
 		return _location[static_cast<Coordinates::size_type>(dimension)];
+	}
+
+	DimensionType dimension() const {
+		return DimensionType(_location.size());
 	}
 
 private:
@@ -77,6 +83,7 @@ private:
 class SpatialBranch {
 public:
 	virtual void Add(Point && point) = 0;
+	virtual bool MustSplit() const = 0;
 };
 
 class SpatialLeaf: public SpatialBranch {
@@ -87,8 +94,11 @@ public:
 	}
 
 	virtual void Add(Point && point) override;
+	virtual bool MustSplit() const override {
+		return _points.size() > _maxItems;
+	}
 
-	SpatialLeaf split(DimensionType dimension);
+	SpatialLeaf split(DimensionType dimension, CoordinateType & splitValue);
 
 private:
 	Bounds _bounds;
@@ -101,6 +111,9 @@ public:
 	SpatialTree(DimensionType splitDimension, CoordinateType splitValue);
 
 	virtual void Add(Point && point) override;
+	virtual bool MustSplit() const override {
+		return false;
+	}
 private:
 	DimensionType _splitDimension;
 	CoordinateType _splitValue;

@@ -2,6 +2,13 @@
 
 #include <algorithm>
 
+DimensionType next(DimensionType dimension, DimensionType maxDimension)
+{
+	auto dim = static_cast<underlying_type<DimensionType>::type>(dimension);
+	auto maxDim = static_cast<underlying_type<DimensionType>::type>(maxDimension);
+	return DimensionType((dim + 1) % maxDim);
+}
+
 Bounds Bounds::split(DimensionType dimension, CoordinateType splitValue)
 {
 	const auto dimIndex = static_cast<underlying_type<DimensionType>::type>(dimension);
@@ -18,7 +25,7 @@ void SpatialLeaf::Add(Point && point) {
 	_points.push_back(point);
 }
 
-SpatialLeaf SpatialLeaf::split(DimensionType dimension)
+SpatialLeaf SpatialLeaf::split(DimensionType dimension, CoordinateType & splitValue)
 {
 	_points.sort(DimensionComparator(dimension));
 	
@@ -27,7 +34,8 @@ SpatialLeaf SpatialLeaf::split(DimensionType dimension)
 		++middle;
 	}
 
-	Bounds newBounds(_bounds.split(dimension, middle->component(dimension)));
+	splitValue = middle->component(dimension);
+	Bounds newBounds(_bounds.split(dimension, splitValue));
 	
 	SpatialLeaf newLeaf(move(newBounds), _maxItems);
 	newLeaf._points.splice(newLeaf._points.end(), _points, middle, _points.end());
@@ -47,7 +55,33 @@ void SpatialTree::Add(Point && point)
 {
 	if (point.component(_splitDimension) < _splitValue) {
 		_lb->Add(move(point));
+
+		if (_lb->MustSplit()) {
+			DimensionType nextDimension = next(_splitDimension, point.dimension());
+			auto leaf = dynamic_cast<SpatialLeaf*>(_lb.get());
+
+			CoordinateType splitValue;
+			auto newLeaf = new SpatialLeaf(leaf->split(nextDimension, splitValue));
+
+			auto newTree = new SpatialTree(nextDimension, splitValue);
+			newTree->_lb = move(_lb);
+			newTree->_ub.reset(newLeaf);
+			_lb.reset(newTree);
+		}
 	} else {
 		_ub->Add(move(point));
+
+		if (_ub->MustSplit()) {
+			DimensionType nextDimension = next(_splitDimension, point.dimension());
+			auto leaf = dynamic_cast<SpatialLeaf*>(_ub.get());
+
+			CoordinateType splitValue;
+			auto newLeaf = new SpatialLeaf(leaf->split(nextDimension, splitValue));
+
+			auto newTree = new SpatialTree(nextDimension, splitValue);
+			newTree->_lb = move(_ub);
+			newTree->_ub.reset(newLeaf);
+			_ub.reset(newTree);
+		}
 	}
 }
