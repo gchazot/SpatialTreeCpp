@@ -69,7 +69,7 @@ void SpatialTree::Add(Point && point)
 		DimensionType nextDimension = next(_splitDimension, point.Dimension());
 		auto leaf = dynamic_cast<SpatialLeaf*>(branch.get());
 
-		CoordinateType splitValue;
+		CoordinateType splitValue = 0.0;
 		auto newLeaf = new SpatialLeaf(leaf->Split(nextDimension, splitValue));
 
 		auto newTree = new SpatialTree(nextDimension, splitValue);
