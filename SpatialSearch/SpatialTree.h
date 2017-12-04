@@ -191,6 +191,8 @@ public:
 	}
 
 private:
+	unique_ptr<SpatialBranch> & WhichBranch(const Point & point);
+
 	DimensionType _splitDimension;
 	CoordinateType _splitValue;
 	unique_ptr<SpatialBranch> _lb;

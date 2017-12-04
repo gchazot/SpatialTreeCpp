@@ -71,36 +71,20 @@ SpatialTree::SpatialTree(DimensionType splitDimension, CoordinateType splitValue
 
 void SpatialTree::Add(Point && point)
 {
-	if (point.Component(_splitDimension) < _splitValue) {
-		_lb->Add(move(point));
+	unique_ptr<SpatialBranch> & branch = WhichBranch(point);
+	branch->Add(move(point));
 
-		if (_lb->MustSplit()) {
+	if (branch->MustSplit()) {
 		DimensionType nextDimension = next(_splitDimension, point.Dimension());
-			auto leaf = dynamic_cast<SpatialLeaf*>(_lb.get());
+		auto leaf = dynamic_cast<SpatialLeaf*>(branch.get());
 
 		CoordinateType splitValue;
 		auto newLeaf = new SpatialLeaf(leaf->Split(nextDimension, splitValue));
 
 		auto newTree = new SpatialTree(nextDimension, splitValue);
-			newTree->_lb = move(_lb);
+		newTree->_lb = move(branch);
 		newTree->_ub.reset(newLeaf);
-			_lb.reset(newTree);
-}
-	} else {
-		_ub->Add(move(point));
-
-		if (_ub->MustSplit()) {
-			DimensionType nextDimension = next(_splitDimension, point.Dimension());
-			auto leaf = dynamic_cast<SpatialLeaf*>(_ub.get());
-
-			CoordinateType splitValue;
-			auto newLeaf = new SpatialLeaf(leaf->Split(nextDimension, splitValue));
-
-			auto newTree = new SpatialTree(nextDimension, splitValue);
-			newTree->_lb = move(_ub);
-			newTree->_ub.reset(newLeaf);
-			_ub.reset(newTree);
-		}
+		branch.reset(newTree);
 	}
 }
 
