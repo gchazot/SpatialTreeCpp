@@ -21,8 +21,26 @@ Bounds Bounds::Split(DimensionType dimension, CoordinateType splitValue)
 	return newBounds;
 }
 
+void NearestSearch::Update(const Point & point) {
+	if (_point.GetId() == point.GetId()) {
+		return;
+	}
+
+	const double distance = _point.Distance(point);
+	if (!_closest.has_value() || distance < _point.Distance(*_closest.value())) {
+		_closest = &point;
+	}
+}
+
 void SpatialLeaf::Add(Point && point) {
 	_points.push_back(point);
+}
+
+void SpatialLeaf::SearchNearest(NearestSearch & result) const
+{
+	for (const auto & point : _points) {
+		result.Update(point);
+	}
 }
 
 SpatialLeaf SpatialLeaf::Split(DimensionType dimension, CoordinateType & splitValue)
@@ -57,17 +75,17 @@ void SpatialTree::Add(Point && point)
 		_lb->Add(move(point));
 
 		if (_lb->MustSplit()) {
-			DimensionType nextDimension = next(_splitDimension, point.Dimension());
+		DimensionType nextDimension = next(_splitDimension, point.Dimension());
 			auto leaf = dynamic_cast<SpatialLeaf*>(_lb.get());
 
-			CoordinateType splitValue;
-			auto newLeaf = new SpatialLeaf(leaf->Split(nextDimension, splitValue));
+		CoordinateType splitValue;
+		auto newLeaf = new SpatialLeaf(leaf->Split(nextDimension, splitValue));
 
-			auto newTree = new SpatialTree(nextDimension, splitValue);
+		auto newTree = new SpatialTree(nextDimension, splitValue);
 			newTree->_lb = move(_lb);
-			newTree->_ub.reset(newLeaf);
+		newTree->_ub.reset(newLeaf);
 			_lb.reset(newTree);
-		}
+}
 	} else {
 		_ub->Add(move(point));
 
@@ -83,5 +101,30 @@ void SpatialTree::Add(Point && point)
 			newTree->_ub.reset(newLeaf);
 			_ub.reset(newTree);
 		}
+	}
+}
+
+void SpatialTree::SearchNearest(NearestSearch & result) const
+{
+	const CoordinateType targetCoord = result.GetPoint().Component(_splitDimension);
+	if (targetCoord < _splitValue) {
+		_lb->SearchNearest(result);
+		if (targetCoord + result.GetClosestDistance() >= _splitValue) {
+			_ub->SearchNearest(result);
+		}
+	} else {
+		_ub->SearchNearest(result);
+		if (targetCoord - result.GetClosestDistance() < _splitValue) {
+			_lb->SearchNearest(result);
+		}
+	}
+}
+
+unique_ptr<SpatialBranch> & SpatialTree::WhichBranch(const Point & point)
+{
+	if (point.Component(_splitDimension) < _splitValue) {
+		return _lb;
+	} else {
+		return _ub;
 	}
 }

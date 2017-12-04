@@ -145,6 +145,14 @@ void SolveWithSpatialIndex(vector<Flight> flights) {
 		index.Add(move(flight.toPoint()));
 	}
 
+	for (const auto & flight : flights) {
+		Point target(flight.toPoint());
+		NearestSearch result(target);
+		index.SearchNearest(result);
+	
+		print_result(flight, flights[result.GetClosest()->GetId()]);
+	}
+
 	debug("Size             " << index.Size());
 	debug("NumLeaves        " << index.NumLeaves());
 	debug("Depth            " << index.Depth());

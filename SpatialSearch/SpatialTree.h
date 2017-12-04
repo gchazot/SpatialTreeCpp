@@ -3,6 +3,7 @@
 #include <limits>
 #include <list>
 #include <memory>
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -29,12 +30,24 @@ public:
 		_location(move(location)) {
 	}
 
+	size_t GetId() const {
+		return _id;
+	}
+
 	CoordinateType Component(DimensionType dimension) const {
 		return _location[static_cast<Coordinates::size_type>(dimension)];
 	}
 
 	DimensionType Dimension() const {
 		return DimensionType(_location.size());
+	}
+
+	CoordinateType Distance(const Point & other) const {
+		CoordinateType total = 0.0f;
+		for (size_t i = 0; i < _location.size(); ++i) {
+			total += (_location[i] - other._location[i]) * (_location[i] - other._location[i]);
+		}
+		return sqrt(total);
 	}
 
 private:
@@ -81,10 +94,38 @@ private:
 	Coordinates _maxs;
 };
 
+class NearestSearch {
+public:
+	NearestSearch(const Point & point) :
+		_point(point),
+		_closest(nullopt) {
+	}
+
+	const Point & GetPoint() const {
+		return _point;
+	}
+	CoordinateType GetClosestDistance() const {
+		if (_closest.has_value()) {
+			return _point.Distance(*_closest.value());
+		}
+		return infinity;
+	}
+	const Point * GetClosest() const {
+		return _closest.value_or(nullptr);
+	}
+
+	void Update(const Point & point);
+
+private:
+	const Point & _point;
+	optional<const Point *> _closest;
+};
+
 class SpatialBranch {
 public:
 	virtual void Add(Point && point) = 0;
 	virtual bool MustSplit() const = 0;
+	virtual void SearchNearest(NearestSearch & result) const = 0;
 
 	virtual size_t Size() const = 0;
 	virtual size_t NumLeaves() const = 0;
@@ -103,6 +144,7 @@ public:
 	virtual bool MustSplit() const override {
 		return _points.size() > _maxItems;
 	}
+	virtual void SearchNearest(NearestSearch & result) const override;
 
 	virtual size_t Size() const {
 		return _points.size();
@@ -133,6 +175,7 @@ public:
 	virtual bool MustSplit() const override {
 		return false;
 	}
+	virtual void SearchNearest(NearestSearch & result) const override;
 
 	virtual size_t Size() const {
 		return _lb->Size() + _ub->Size();
