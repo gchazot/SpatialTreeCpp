@@ -55,23 +55,6 @@ private:
 	Coordinates _location;
 };
 
-class DimensionComparator {
-public:
-	explicit DimensionComparator(DimensionType dimension) :
-		_dim(dimension) {
-	}
-
-	DimensionComparator(const DimensionComparator &) = default;
-	DimensionComparator(DimensionComparator &&) = default;
-
-
-	bool operator()(const Point & p1, const Point & p2) const {
-		return p1.Component(_dim) < p2.Component(_dim);
-	}
-private:
-	const DimensionType _dim;
-};
-
 class NearestSearch {
 public:
 	NearestSearch(const Point & point) :

@@ -33,7 +33,9 @@ void SpatialLeaf::SearchNearest(NearestSearch & result) const
 
 SpatialLeaf SpatialLeaf::Split(DimensionType dimension, CoordinateType & splitValue)
 {
-	_points.sort(DimensionComparator(dimension));
+	_points.sort([dimension](const Point & p1, const Point & p2) {
+		return p1.Component(dimension) < p2.Component(dimension);
+	});
 	
 	auto middle = _points.begin();
 	for (size_t i = 0; i < _points.size() / 2; ++i) {
