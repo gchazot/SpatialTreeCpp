@@ -1,3 +1,6 @@
-SpatialSearch/Debug/
 .vs/
 SpatialSearch/x64/
+SpatialSearch/Debug/
+SpatialSearch/Release/
+x64/
+Release/
