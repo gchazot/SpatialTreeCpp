@@ -152,11 +152,6 @@ void SolveWithSpatialIndex(vector<Flight> flights) {
 	
 		print_result(flight, flights[result.GetClosest()->GetId()]);
 	}
-
-	debug("Size             " << index.Size());
-	debug("NumLeaves        " << index.NumLeaves());
-	debug("Depth            " << index.Depth());
-	debug("MaxItemsPerLeaf  " << index.MaxItemsPerLeaf());
 }
 
 int main()
