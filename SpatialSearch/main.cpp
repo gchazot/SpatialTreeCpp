@@ -29,7 +29,10 @@ double rad2deg(double rad) {
 
 struct Flight {
 	Flight(size_t index, string callSign, double latitude, double longitude) :
-		index(index), callSign(move(callSign)), latitude(latitude), longitude(longitude) {}
+		index(index),
+		callSign(move(callSign)),
+		latitude(deg2rad(latitude)),
+		longitude(deg2rad(longitude)) {}
 
 	size_t index;
 	string callSign;
@@ -38,14 +41,9 @@ struct Flight {
 
 	double distance(const Flight & other) const {
 		// Credits to https://stackoverflow.com/questions/10198985/calculating-the-distance-between-2-latitudes-and-longitudes-that-are-saved-in-a
-		double lat1r, lon1r, lat2r, lon2r, u, v;
-		lat1r = deg2rad(latitude);
-		lon1r = deg2rad(longitude);
-		lat2r = deg2rad(other.latitude);
-		lon2r = deg2rad(other.longitude);
-		u = sin((lat2r - lat1r) / 2);
-		v = sin((lon2r - lon1r) / 2);
-		return 2.0 * earthRadiusKm * asin(sqrt(u * u + cos(lat1r) * cos(lat2r) * v * v));
+		const double u = sin((other.latitude - latitude) / 2);
+		const double v = sin((other.longitude - longitude) / 2);
+		return 2.0 * earthRadiusKm * asin(sqrt(u * u + cos(latitude) * cos(other.latitude) * v * v));
 	}
 
 	Point toPoint() const {
