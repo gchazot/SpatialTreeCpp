@@ -51,6 +51,9 @@ SpatialLeaf SpatialLeaf::Split(DimensionType dimension, CoordinateType & splitVa
 	for (size_t i = 0; i < _points.size() / 2; ++i) {
 		++middle;
 	}
+	while (middle != _points.begin() && prev(middle)->Component(dimension) == middle->Component(dimension)) {
+		--middle;
+	}
 
 	splitValue = middle->Component(dimension);
 	Bounds newBounds(_bounds.Split(dimension, splitValue));
