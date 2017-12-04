@@ -45,7 +45,7 @@ public:
 	CoordinateType Distance(const Point & other) const {
 		CoordinateType total = 0.0f;
 		for (size_t i = 0; i < _location.size(); ++i) {
-			total += (_location[i] - other._location[i]) * (_location[i] - other._location[i]);
+			total += pow(_location[i] - other._location[i], 2.0);
 		}
 		return sqrt(total);
 	}
@@ -59,17 +59,15 @@ class NearestSearch {
 public:
 	NearestSearch(const Point & point) :
 		_point(point),
-		_closest(nullopt) {
+		_closest(nullopt),
+		_closest_dist(infinity){
 	}
 
 	const Point & GetPoint() const {
 		return _point;
 	}
 	CoordinateType GetClosestDistance() const {
-		if (_closest.has_value()) {
-			return _point.Distance(*_closest.value());
-		}
-		return infinity;
+		return _closest_dist;
 	}
 	const Point * GetClosest() const {
 		return _closest.value_or(nullptr);
@@ -80,6 +78,7 @@ public:
 private:
 	const Point & _point;
 	optional<const Point *> _closest;
+	CoordinateType _closest_dist;
 };
 
 class SpatialBranch {

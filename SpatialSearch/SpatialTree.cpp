@@ -15,8 +15,9 @@ void NearestSearch::Update(const Point & point) {
 	}
 
 	const double distance = _point.Distance(point);
-	if (!_closest.has_value() || distance < _point.Distance(*_closest.value())) {
+	if (!_closest.has_value() || distance < _closest_dist) {
 		_closest = &point;
+		_closest_dist = distance;
 	}
 }
 
