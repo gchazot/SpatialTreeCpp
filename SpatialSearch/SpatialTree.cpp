@@ -9,18 +9,6 @@ DimensionType next(DimensionType dimension, DimensionType maxDimension)
 	return DimensionType((dim + 1) % maxDim);
 }
 
-Bounds Bounds::Split(DimensionType dimension, CoordinateType splitValue)
-{
-	const auto dimIndex = static_cast<underlying_type<DimensionType>::type>(dimension);
-
-	_mins[dimIndex] = splitValue;
-
-	Bounds newBounds(*this);
-	newBounds._maxs[dimIndex] = splitValue;
-
-	return newBounds;
-}
-
 void NearestSearch::Update(const Point & point) {
 	if (_point.GetId() == point.GetId()) {
 		return;
@@ -56,9 +44,8 @@ SpatialLeaf SpatialLeaf::Split(DimensionType dimension, CoordinateType & splitVa
 	}
 
 	splitValue = middle->Component(dimension);
-	Bounds newBounds(_bounds.Split(dimension, splitValue));
 	
-	SpatialLeaf newLeaf(move(newBounds), _maxItems);
+	SpatialLeaf newLeaf(_maxItems);
 	newLeaf._points.splice(newLeaf._points.end(), _points, middle, _points.end());
 	return newLeaf;
 }
@@ -66,10 +53,8 @@ SpatialLeaf SpatialLeaf::Split(DimensionType dimension, CoordinateType & splitVa
 SpatialTree::SpatialTree(DimensionType splitDimension, CoordinateType splitValue) :
 	_splitDimension(splitDimension),
 	_splitValue(splitValue) {
-	Bounds highBounds({ -1.0, -1.0, -1.0 }, { 1.0, 1.0, 1.0 });
-	Bounds lowBounds(move(highBounds.Split(_splitDimension, _splitValue)));
-	_lb.reset(new SpatialLeaf(move(lowBounds), 10));
-	_ub.reset(new SpatialLeaf(move(highBounds), 10));
+	_lb.reset(new SpatialLeaf(10));
+	_ub.reset(new SpatialLeaf(10));
 }
 
 void SpatialTree::Add(Point && point)

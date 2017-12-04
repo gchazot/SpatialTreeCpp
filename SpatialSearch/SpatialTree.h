@@ -72,28 +72,6 @@ private:
 	const DimensionType _dim;
 };
 
-class Bounds {
-public:
-	Bounds(const Coordinates & mins, const Coordinates & maxs) :
-		_mins(mins),
-		_maxs(maxs) {
-	}
-
-	Bounds(Coordinates && mins, Coordinates && maxs) :
-		_mins(move(mins)),
-		_maxs(move(maxs)) {
-	}
-
-	Bounds(const Bounds & bounds) = default;
-	Bounds(Bounds && bounds) = default;
-
-	Bounds Split(DimensionType dimension, CoordinateType splitValue);
-
-private:
-	Coordinates _mins;
-	Coordinates _maxs;
-};
-
 class NearestSearch {
 public:
 	NearestSearch(const Point & point) :
@@ -135,8 +113,7 @@ public:
 
 class SpatialLeaf: public SpatialBranch {
 public:
-	SpatialLeaf(Bounds && bounds, size_t maxItems):
-		_bounds(move(bounds)),
+	SpatialLeaf(size_t maxItems):
 		_maxItems(maxItems) {
 	}
 
@@ -162,7 +139,6 @@ public:
 	SpatialLeaf Split(DimensionType dimension, CoordinateType & splitValue);
 
 private:
-	Bounds _bounds;
 	size_t _maxItems;
 	list<Point> _points;
 };
